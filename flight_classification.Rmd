@@ -1,0 +1,493 @@
+---
+title: "Flight Delay Prediction"
+author: "Frank Laudert"
+date: "2025-10-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+For the  first part of our flight arrival project, we cleaned, prepared and explored the combined flight data sets. (https://franklauder.github.io/Flight_Delays/flightAnalysis.html) For the second part of our project, we are ready to move on to predict whether flights will be on time or later. Our focus is on flights arriving late. For predicting flight arrivals, we will use three classifier algorithms (logistic regression, random forest, and gradient boost). The data sets were downloaded from Kaggle. They can be viewed by going to the following link: https://www.kaggle.com/datasets/yuanyuwendymu/airline-delay-and-cancellation-data-2009-2018
+
+
+# Libraries
+
+```{python}
+
+
+
+
+import pyspark
+from pyspark.sql import SparkSession
+from pyspark.conf import SparkConf
+from pyspark.ml.linalg import Vectors
+
+from pyspark.ml.param import Param, Params
+from pyspark.sql.functions import col, desc
+from pyspark.sql.types import StringType,BooleanType,IntegerType,DoubleType,StructType,StructField,LongType,ShortType
+
+from pyspark.ml.feature import VectorAssembler,MinMaxScaler, StandardScaler
+
+from pyspark.ml import Pipeline
+
+from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetrics
+
+from pyspark.mllib.stat import Statistics
+from pyspark.ml.feature import StringIndexer,OneHotEncoder
+
+
+from pyspark.ml.classification import LogisticRegression,DecisionTreeClassifier,GBTClassifier,RandomForestClassifier,LinearSVC
+
+
+from pyspark.ml.evaluation import BinaryClassificationEvaluator,MulticlassClassificationEvaluator
+
+
+import pyspark.ml.evaluation as evals
+
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder,CrossValidatorModel
+
+from pyspark.ml.stat import Correlation
+
+from pyspark.sql.functions import *
+
+from pyspark.sql.window import *
+from pyspark.sql.functions import row_number
+
+import itertools
+from pyspark.sql import SQLContext
+
+from pyspark import SparkContext
+
+
+
+
+```
+
+
+
+```{python}
+
+
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import chi2_contingency
+import seaborn as sns
+
+
+```
+
+
+```{python}
+
+
+
+from sklearn.metrics import roc_curve, precision_recall_curve, auc
+
+
+```
+
+```{python}
+
+
+
+pd.set_option("display.max_rows", None)
+
+```
+
+
+```{python}
+
+
+from pyspark import SparkContext
+
+
+```
+
+
+```{python}
+
+
+
+print(spark)
+print(sc)
+
+
+```
+
+
+
+```{python}
+
+
+
+spark.conf.set("spark.sql.adaptive.enabled", "true")
+
+
+```
+
+# Data
+
+## Data Dictionary
+
+
+OP_CARRIER-Airline carrier code
+
+DEP_DELAY-Difference in minutes between scheduled and actual departure time. Early departures show negative numbers.
+
+AXI_OUT-The time elapsed between departure from the origin airport gate and wheels off, in minutes.
+
+TAXI_IN-Taxi time from wheels down to arrival at the gate, in minutes. CARRIER_DELAY-Carrier Delay, in Minutes. Carrier delay is within the control of the air carrier. Examples of occurrences that may determine carrier delay are: aircraft cleaning, aircraft damage, awaiting the arrival of connecting passengers or crew, baggage, bird strike, cargo loading, catering, computer, outage-carrier equipment, crew legality (pilot or attendant rest), damage by hazardous goods, engineering inspection, fueling, handling disabled passengers, late crew, lavatory servicing, maintenance, oversales, potable water servicing, removal of unruly passenger, slow boarding or seating, stowing carry-on baggage, weight and balance delays.
+
+WEATHER_DELAY-Weather Delay, in Minutes. Weather delay is caused by extreme or hazardous weather conditions that are forecasted or manifest themselves on point of departure, enroute, or on point of arrival.
+
+NAS_DELAY-National Air System Delay, in Minutes.Delay that is within the control of the National Airspace System (NAS) may include: non-extreme weather conditions, airport operations, heavy traffic volume, air traffic control, etc. Delays that occur after Actual Gate Out are usually attributed to the NAS and are also reported through OPSNET.
+
+SECURITY_DELAY-Security Delay, in Minutes. Security delay is caused by evacuation of a terminal or concourse, re-boarding of aircraft because of security breach, inoperative screening equipment and/or long lines in excess of 29 minutes at screening areas.
+
+LATE_AIRCRAFT_DELAY-Late Aircraft Delay, in Minutes. Arrival delay at an airport due to the late arrival of the same aircraft at a previous airport. The ripple effect of an earlier delay at downstream airports is referred to as delay propagation.
+
+schDepWhOffDiff-Difference between scheduled departure time and wheels up.
+
+wheOnScArrDiff-Difference between wheels down and scheduled arrival time.
+
+DayOfWeek-1 (Monday) - 7 (Sunday)
+
+Month-1-12
+
+DepartureDelayGroups-Departure Delay intervals, every (15 minutes from <-15 to >180). Negative observations are set to zero.
+
+0 Delay between 0 and 14 minutes 1 Delay between 15 to 29 minutes 2 Delay between 30 to 44 minutes 3 Delay between 45 to 59 minutes 4 Delay between 60 to 74 minutes 5 Delay between 75 to 89 minutes 6 Delay between 90 to 104 minutes 7 Delay between 105 to 119 minutes 8 Delay between 120 to 134 minutes 9 Delay between 135 to 149 minutes 10 Delay between 150 to 164 minutes 11 Delay between 165 to 179 minutes 12 Delay >= 180 minutes
+
+DepTimeBlk-CRS Departure Time Block, Hourly Intervals
+
+1--001-0559 12:00AM to 5:59AM 2--0600-0659 6:00AM to 6:59AM 3--0700-0759 7:00AM to 7:59AM 4--0800-0859 8:00AM to 8:59AM 5--0900-0959 9:00AM to 9:59AM 6--1000-1059 10:00AM to 10:59AM 7--1100-1159 11:00AM to 11:59AM 8--1200-1259 12:00PM to 12:59PM 9--1300-1359 1:00PM to 1:59PM 10--1400-1459 2:00PM to 2:59PM 11--1500-1559 3:00PM to 3:59PM 12--1600-1659 4:00PM to 4:59PM 13--1700-1759 5:00PM to 5:59PM 14--1800-1859 6:00PM to 6:59PM 15--1900-1959 7:00PM to 7:59PM 16--2000-2059 8:00PM to 8:59PM 17--2100-2159 9:00PM to 9:59PM 18--2200-2259 10:00PM to 10:59PM 19--2300-2359 11:00PM to 11:59PM
+
+DistanceGroup-Distance Intervals, every 250 Miles, for Flight Segment
+
+1--Less Than 250 Miles 2--250-499 Miles 3--500-749 Miles 4--750-999 Miles 5--1000-1249 Miles 6--1250-1499 Miles 7--1500-1749 Miles 8--1750-1999 Miles 9--2000-2249 Miles 10--2250-2499 Miles 11--500 Miles and Greater
+
+
+
+## Import & Review
+
+We will import our cleaned flight data from its stored location in a Amazon Web Services S3 bucket
+
+```{python}
+
+
+flight_10=spark.read.format('csv').options(header='true', inferSchema='true').load('s3://databricks-workspacedemo-cloud-storage-bucket/DBWorkData/csv3/flight_10/')
+
+
+```
+
+
+
+```{python}
+
+
+
+flight_10.show()
+
+
+```
+
+
+
+
+```{python}
+
+
+display(flight_10)
+
+
+```
+
+
+
+```{python}
+
+
+flight_10.count()
+
+
+```
+
+
+
+```{python}
+
+flight_10.columns
+
+
+```
+
+
+
+```{python}
+
+
+print(flight_10.dtypes)
+
+
+```
+
+
+```{python}
+
+flight_10.printSchema()
+
+```
+
+
+
+
+Our review of the flight_10 dataset reveals it has nineteen columns and a little over six million rows. 
+
+We will transform certain features from numeric data types to categorical data data types.
+
+
+```{python}
+
+
+flight_11= flight_10.withColumn("DepTimeBlk",col("DepTimeBlk").cast(StringType())) \
+            .withColumn("Month",col("Month").cast(StringType())) \
+            .withColumn('DayofMonth',col('DayofMonth').cast(StringType())) \
+            .withColumn('DayOfWeek',col('DayOfWeek').cast(StringType())) \
+            .withColumn("ArrDel15",col("ArrDel15").cast(StringType())) \
+            .withColumn("DepartureDelayGroups",col("DepartureDelayGroups").cast(StringType())) \
+            .withColumn("DistanceGroup",col("DepartureDelayGroups").cast(StringType()))
+
+
+```
+
+
+
+```{python}
+
+
+
+flight_11.printSchema() 
+
+
+```
+
+
+# Feature Selection
+
+## Numeric Features
+
+
+Correlation will be used to determine if there are mutual relationships between our numeric features.
+
+
+First, we will extract numeric features from the data set. 
+
+```{python}
+
+
+numeric_cols = [
+    c for c, t in flight_11.dtypes if t.startswith('string') == False
+]
+
+
+```
+
+
+
+
+```{python}
+
+
+
+numeric_cols = [
+    c for c, t in flight_11.dtypes if t.startswith('string') == False
+]
+
+```
+
+
+```{python}
+
+
+print(numeric_df.dtypes)
+
+
+```
+
+Next, the VectorAssembler function will be used to transform the numeric features into a single column (Vector). VectorAssembler will appear again during the building of our pipeline.
+
+```{python}
+
+
+num_assembler = VectorAssembler(inputCols=numeric_cols,
+                                outputCol="num_features")
+
+
+```
+
+
+
+```{python}
+
+
+df_num_assembler = num_assembler.transform(numeric_df)
+
+
+```
+
+
+
+```{python}
+
+
+df_num_assembler.show(3)
+
+```
+
+
+```{python}
+
+
+or k, v in df_num_assembler.schema["num_features"].metadata["ml_attr"][
+        "attrs"].items():
+    features_df = pd.DataFrame(v)
+column_names = list(features_df['name'])
+
+
+```
+
+
+
+
+```{python}
+
+
+spark.createDataFrame(features_df).show(11)
+
+
+```
+
+
+```{python}
+
+
+features_df.info()
+
+
+```
+
+
+
+```{python}
+
+
+df_vector = df_num_assembler.rdd.map(lambda x: x['num_features'].toArray())
+
+
+```
+
+
+```{python}
+
+df_vector.take(4)
+
+
+
+```
+
+
+
+
+
+```{python}
+
+
+correlation_type = 'pearson'
+
+
+```
+
+
+```{python}
+
+
+matrix = Statistics.corr(df_vector, method=correlation_type)
+
+```
+
+
+
+```{python}
+
+
+corr_df = pd.DataFrame(matrix, columns=column_names, index=column_names)
+
+
+```
+
+
+
+
+```{python}
+
+
+final_corr_df = pd.DataFrame(corr_df.abs().unstack().sort_values(kind='quicksort')).reset_index()
+final_corr_df.rename({'level_0': 'col1', 'level_1': 'col2', 0: 'correlation_value'}, axis=1, inplace=True)
+final_corr_df = final_corr_df[final_corr_df['col1'] != final_corr_df['col2']]
+
+
+```
+
+We are setting our correlation cutoff at .70. This means if any pair of features show a relationship of .70 or greater than one feature will be dropped from the data set.
+
+```{python}
+
+
+correlation_cutoff = 0.70 #custom parameter
+final_corr_df[final_corr_df['correlation_value'] > correlation_cutoff]
+
+
+```
+
+Our result came back as an empty data frame. This means there are no features that meet our correlation cutoff. All numeric features will remain in our data set.
+
+
+
+## Categorical Features
+
+```{python}
+
+
+
+
+
+```
+
+
+
+
+```{python}
+
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+
+
+```
+
+
