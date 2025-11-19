@@ -495,9 +495,70 @@ flight_12.printSchema()
 ```{python}
 
 
+flight_12.count()
+
+
+```
+
+```{python}
+
+flight_12_percent=flight_12.groupBy("ArrDel15").count().withColumn("Percent",col("count")/flight_12.count()*100)
+flight_12_percent.show()
+
+```
+
+From our inspection of our data earlier, we observed that our data has just over sixty million rows. This size will take large resources and time to complete our classification models. Thus, we will sample our flight data to get a smaller representation that will use less resources and take less time to process.
+
+
+
+
+```{python}
+
+flight_sample = flight_12.sample(False, 0.3, 11)
+
+
+```
+
+```{python}
+
+
+flight_sample.count()
+
+
+```
+
+
+```{python}
+
+
+arrDelay_percent=flight_sample.groupBy("ArrDel15").count().withColumn("Percent",col("count")/flight_sample.count()*100)
+arrDelay_percent.show()
+
+
+```
+
+
+Our sampled data is now just over 18 million rows. Additionally, the target feature's lables (0,1) are the same percentage as the original flight_12 data. 
+
+
+```{python}
+
 
 
 
 ```
+
+```{python}
+
+
+
+
+```
+
+
+
+
+
+
 
 
