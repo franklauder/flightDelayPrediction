@@ -541,9 +541,36 @@ arrDelay_percent.show()
 Our sampled data is now just over 18 million rows. Additionally, the target feature's lables (0,1) are the same percentage as the original flight_12 data. 
 
 
+
+## Pipeline
+
+A Pipeline is simply a sequence of stages, each of which is either an Estimator or a Transformer. Each stage must be executed in order. An estimator is an object that fits a model based on the input data. Essentially, an estimator is an algorithm which can be fitted on a data frame to produce a transformer. A transformer is an algorithm which can transform one data frame into another data frame. In other words, a transformer takes a data frame with features and produces a data frame with additional features.
+
+### Categorical Features
+
+The first steps are to transform our categorical features. First, we transform our target feature ArrDel15 and rename it to "label" This will is accomplished by using StringIndexer. StringIndexer helps convert categorical string columns in a Data Frame into numerical indices. This conversion is necessary because most machine learning algorithms cannot work directly with string data. StringIndexer converts categorical string columns by assigning a unique index to each distinct string value in the input column and maps it to a new output column of integer indices.
+
+
+
 ```{python}
 
+renamed=flight_sample.withColumn('label_str',flight_sample['ArrDel15'].cast(StringType()))
 
+indexer=StringIndexer(inputCol='label_str',outputCol='label')
+
+
+```
+
+The .fit method is used to scan the input column to find unique string values present. The fit method then creates a mapping (think lookup table) where each unique string value is assigned a numerical index. It then returns a StringIndexerModel. 
+
+Once we have our StringIndexer model we use the transform method to apply the learned mapping from String Indexer Model to the original data and create a new column (outputCol in the code). The outputCol contains the numerical indices for each value in the input column. 
+
+
+
+
+```{python}
+
+indexed = indexer.fit(renamed).transform(renamed)
 
 
 ```
@@ -551,11 +578,149 @@ Our sampled data is now just over 18 million rows. Additionally, the target feat
 ```{python}
 
 
+indexed.printSchema()
+
+
+```
+
+From the schema we find that the renamed target feature "label" now appears. We no longer require the original target feature name of "ArrDel15" and the "label_str" feature.
+
+
+```{python}
+
+indexed=indexed.drop("ArrDel15",'label_str')
 
 
 ```
 
 
+```{python}
+
+
+indexed.printSchema()
+
+
+```
+
+Next, predictor features will be transformed by the StringIndexer function. First the categorical columns will be extracted. The following code will pull all string data from the indexed data set, exclude the’ label’ feature, and create a list of categorical columns named categoricalCols.
+
+
+
+```{python}
+
+
+categoricalCols = [field for (field, dataType) in indexed.dtypes 
+                   if dataType == "string"
+                  and field != 'label']
+indexOutputCols = [x + "Index" for x in categoricalCols]
+
+```
+
+
+```{python}
+
+type(categoricalCols)
+
+
+```
+
+
+```{python}
+
+categoricalCols
+
+
+
+```
+
+
+
+
+```{python}
+
+stringIndexer = StringIndexer(inputCols=categoricalCols,
+                              outputCols=indexOutputCols,
+                              handleInvalid="skip")
+
+
+
+```
+
+
+
+The StringIndexer function takes in as input our categorical columns and returns as output the same categorical columns only now indexed. 
+
+
+
+```{python}
+
+
+
+indexOutputCols
+
+
+```
+
+
+
+
+We see that the indexOutPutCols string shows all categorical features as indexed.
+
+Many machine learning algorithms require all the input and output variables to be numeric. For our purposes this requires all strings data types to be transformed into numeric data types. We will accomplish this by Appling one-hot-encoding to a string features. One-hot encoding will create new columns as much as the number of unique instances there are for a feature. If you have a feature 'performance' with three levels ('good', 'fair', 'poor'), the new columns will be filled with 0s and 1s. Our data frame now has three new features, 'performance.good', 'performanc.fair', and 'performance.poor'. This is considered creating dummy features.
+
+
+
+
+```{python}
+
+oheOutputCols = [x + "OHE" for x in categoricalCols]
+
+
+
+```
+
+
+```{python}
+
+
+
+oheEncoder = OneHotEncoder(inputCols=indexOutputCols, outputCols=oheOutputCols)
+
+
+```
+
+We now will extract our numerical columns from the indexed data. 
+
+
+
+```{python}
+
+
+
+oheEncoder
+
+
+```
+
+
+```{python}
+
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+
+
+
+```
 
 
 
