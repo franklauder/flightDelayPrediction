@@ -461,10 +461,16 @@ Our result came back as an empty data frame. This means there are no features th
 
 ## Categorical Features
 
+
+We will drop the feature 'DayofMonth' from the data set as it duplicates other features. 
+
+
+
 ```{python}
 
 
 
+flight_12=flight_11.drop('DayofMonth')
 
 
 ```
@@ -475,11 +481,15 @@ Our result came back as an empty data frame. This means there are no features th
 ```{python}
 
 
-
+flight_12.printSchema()
 
 
 
 ```
+
+# Pre-processing
+
+## Sampling
 
 
 ```{python}
