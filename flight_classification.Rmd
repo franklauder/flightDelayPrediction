@@ -702,11 +702,21 @@ oheEncoder
 
 ```
 
+### Numerical Features
+
+Numerical features, excluding the label, will be extracted from the indexed data frame. 
+
+
+
+
 
 ```{python}
 
 
-
+numericCols = [
+    field for (field, dataType) in indexed.dtypes
+    if ((dataType == "int") & (field != "label"))
+]
 
 
 
