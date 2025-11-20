@@ -972,9 +972,44 @@ flights_train.cache().count()
 
 ```
 
+# Models
+
+## Evaluation metrics
+
+### Definitions
+
+
+
+
+•	Accuracy-measures the number of predictions that are correct as a percentage of the total number of predictions that are made. As an example, if 90% of your predictions are correct, your accuracy is simply 90%. Calculation: number of correct predictions/Number of total predictions. TP+TN/(TP+TN+FP+FN)
+•	Precision-tells us about the quality of positive predictions. It may not find all the positives but the ones that the model does classify as positive are likely to be correct. As an example, out of everyone predicted to have defaulted, how many of them did default? So, within everything that has been predicted as positive, precision counts the percentage that is correct. Calculation: True positives/All Positives. TP/(TP+FP)
+•	Recall- tells us about how well the model identifies true positives. The model may find a lot of positives, yet it also will incorrectly detect many positives that are not actually positives. Out of all the patients who have the disease, how many were correctly identified? So, within everything that is positive, how many did the model successfully find? A model with low recall is unable to find all (or a large part) of the positive cases in the data. Calculated as: True Positives/ (False Negatives + True Positives)
+•	F1 Score-The F1 score is defined as the harmonic mean of precision and recall. The formula for the F1 score is the following: 2 times(precision*Recall)/ (Precision + Recall)) Since the F1 score is an average of Precision and Recall, it means that the F1 score gives equal weight to Precision and Recall.
+
+   
+
+
+Precision-recall curve-A precision-recall curve is a plot that visualizes the trade-off between precision and recall at various thresholds for a binary classification model. A perfect model would have a curve that bends to the top-right corner, reaching a precision and recall of 1. The PR curve focuses on the performance of the model on the positive class, making it more relevant when detecting specific, important cases is the primary goal.
+
+Precision-recall Area Under the Curve (PR AUC)-Calculates the area under the Precision-recall curve. A higher PR AUC indicates better performance, as it represents a better balance of precision and recall across different thresholds.
+
+
+
+
+ROC Curve-gives a visual representation of the trade-offs between the true positive rate (TPR) and false positive rate (FPR) at various thresholds. It helps gain insights into how how well the model can balance the trade-offs between detecting positive instances and avoiding false positives across different thresholds.
+
+Area Under the Curve Score (AUC)-evaluates a binary classification model's ability to distinguish between classes across various thresholds. The score, which ranges from 0 to 1, indicates how well the model's predicted probabilities separate positive from negative cases. When AUC is close to 1, our model is exhibiting excellent performance with a strong ability to distinguish between classes. An AUC around 0.5 shows that the model is not doing any better than random guessing, i.e a coin toss. An AUC score closer to 0 is an indicates the model is getting it entirely wrong, worse than a coin toss.
+
+True positive rate (TPR)- Reflects a model’s ability to correctly identify positive instances. It measures the proportion of actual positive cases that the model successfully identifies. False positive rate (FPR)-Represents how often our model incorrectly classifies negative class instances as positive. It measures the proportion of actual negative instances that are incorrectly identified as positive by the model, indicating the rate of false predictions.
+
+For our analysis, the negative class (flight arrives on time) is label 0. The positive class (flight arrives late) is label 1. Our event of interest are flights that arrive late. 
+
+
 
 ```{python}
 
+# Binary evaluator (for ROC AUC)
+binary_eval = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")
 
 
 
@@ -986,6 +1021,12 @@ flights_train.cache().count()
 
 
 
+# Multiclass metrics
+evaluator = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")
+accuracy_eval = MulticlassClassificationEvaluator(metricName="accuracy")
+precision_eval = BinaryClassificationEvaluator(labelCol="label", rawPredictionCol="rawPrediction",metricName="weightedPrecision")
+recall_eval = BinaryClassificationEvaluator(labelCol="label", rawPredictionCol="rawPrediction",metricName="weightedRecall")
+f1_eval = BinaryClassificationEvaluator(labelCol="label", rawPredictionCol="rawPrediction",metricName="f1")
 
 
 ```
@@ -993,7 +1034,8 @@ flights_train.cache().count()
 ```{python}
 
 
-
+accuracy_eval = MulticlassClassificationEvaluator(metricName="accuracy")
+evaluator = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")
 
 
 
@@ -1001,6 +1043,18 @@ flights_train.cache().count()
 
 
 
+```{python}
+
+
+recall_test_eval=MulticlassClassificationEvaluator(
+    labelCol="label", predictionCol="prediction", metricName="weightedRecall")
+    
+precision_test_eval=MulticlassClassificationEvaluator(
+    labelCol="label", predictionCol="prediction", metricName="weightedPrecision")
+
+
+
+```
 
 
 
