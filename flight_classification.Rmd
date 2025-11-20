@@ -722,15 +722,113 @@ numericCols = [
 
 ```
 
+### Assemble
+
+
+Categorcal and Numerical features lists will be combined for one features list.
 
 ```{python}
 
 
-
+feature_list = oheOutputCols + numericCols
 
 
 
 ```
+
+
+VectorAssembler will now be used to to combine the categorical and numeric list into one vector column.
+
+
+```{python}
+
+assembler = VectorAssembler(inputCols=feature_list, outputCol="features")
+
+
+```
+
+
+```{python}
+
+All transformers used will be included in one list called stages.
+
+
+```
+
+```{python}
+
+stages = [stringIndexer, oheEncoder, assembler]
+
+
+```
+
+```{python}
+
+selectedCols = ['label', 'features'] + feature_list
+
+
+```
+
+Now that our pipeline is complete, we will fit it to the indexed data. 
+
+
+```{python}
+
+assembleModel = pipeline.fit(indexed)
+
+
+```
+
+
+```{python}
+
+final_data = assembleModel.transform(indexed).select(selectedCols)
+
+
+
+```
+
+```{python}
+
+
+final_data.show(5)
+
+
+```
+
+Fitting the pipeline on our indexed data is a notable example of an estimator being fit to the data. The pipeline contains the estimators we created (stringIndexer, oheEncoder, assembler) and fit them to the indexed data. The result creates our model.
+
+
+We then used assembleModel to transform the indexed data. The resulting final_data data frame now has a new column "features". Within the brackets of each row of the "features" column are all our predictor features combined, (assembled), into an array ([13,22,45,52, ...])
+
+
+
+```{python}
+
+
+for k, v in final_data.schema["features"].metadata["ml_attr"]["attrs"].items():
+    final_features_df = pd.DataFrame(v)
+
+
+
+```
+
+Below is the output of our final features, giving us a look on how the one-hot coded features are now displayed.
+
+
+
+```{python}
+
+
+print(final_features_df.head(50))
+
+
+```
+
+
+
+
+
 
 
 
