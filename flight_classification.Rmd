@@ -887,6 +887,91 @@ final_data_scaled.show(5)
 Our label and features are now in the appropriate format for use in our classification models.
 
 
+## Train Test Split
+
+The final scaled data set will now be split into training and testing sets. First, our models will be fit (trained) on our training data. Then, our models will be evaluated on our test data so we can judge how well the characteristics of the training data generalize to new, unseen data. We will check if our model is overfit. Overfitting is when a model becomes so good on our training data that it has mastered every pattern. This makes the model perform well with training data but poorly with test (unseen) data.
+
+
+```{python}
+
+
+flights_train, flights_test = final_data_scaled.randomSplit([.80, .20], seed=43)
+
+
+```
+
+
+```{python}
+
+
+training_ratio = flights_train.count() / final_data.count()
+
+
+
+```
+
+
+
+```{python}
+
+
+training_ratio
+
+
+
+```
+
+
+```{python}
+
+
+display(flights_train)
+
+
+```
+
+
+```{python}
+
+display(flights_test)
+
+
+
+```
+
+
+```{python}
+
+
+print("Training Set Count", flights_train.count())
+print("Test Set Count", flights_test.count())
+
+
+```
+
+We will use the .reparation method to ensure Spark can parallelize tasks across all executor cpu cores.
+
+```{python}
+
+
+
+flights_train=flights_train.repartition(64)
+
+
+
+```
+
+Since we will be using the training data multiple times we will cache it, which will reduce re-computation across stages.
+
+
+```{python}
+
+
+flights_train.cache().count()
+
+
+```
+
 
 ```{python}
 
@@ -896,6 +981,14 @@ Our label and features are now in the appropriate format for use in our classifi
 
 ```
 
+
+```{python}
+
+
+
+
+
+```
 
 ```{python}
 
