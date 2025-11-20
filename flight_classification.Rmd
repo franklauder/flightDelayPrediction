@@ -826,6 +826,91 @@ print(final_features_df.head(50))
 ```
 
 
+### Scaling
+
+
+
+Scaling helps ensure that the data is on the same scale. The purpose is to ensure that all features contribute equally to the model and to avoid the domination of features with larger values. We will be use the Min-Max method which re-scales features so they end up ranging between 0 and 1.
+
+
+
+
+```{python}
+
+scaler = MinMaxScaler(inputCol="features", outputCol="scaledFeatures")
+
+
+```
+
+
+```{python}
+
+scalerModel = scaler.fit(final_data)
+
+
+```
+
+```{python}
+
+
+scaled_data = scalerModel.transform(final_data)
+final_data_scaled = scaled_data.select('label','scaledFeatures')
+
+```
+
+```{python}
+
+
+scaled_data.show(5)
+
+```
+
+The scaled data output now has a new column 'scaledFeatures' containing our scaled features. The original 'features ' column still exists, as we can see from the output. For the final scaled data frame, we will change the name of 'scaledFeatures' back to 'features' and remove the previous 'features' column.
+
+
+```{python}
+
+
+final_data_scaled = final_data_scaled.withColumnRenamed("scaledFeatures","features")
+
+
+```
+
+```{python}
+
+
+final_data_scaled.show(5)
+
+
+```
+
+Our label and features are now in the appropriate format for use in our classification models.
+
+
+
+```{python}
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+
+
+
+```
+
+
+
+
+
+
 
 
 
