@@ -1058,12 +1058,71 @@ precision_test_eval=MulticlassClassificationEvaluator(
 
 
 
+## Logistic REgression
+
+
+
+In simple terms Logistic Regression is about probabilities. It measures the likelihood of an event occurring. Logistic regression aims to find the probability that a given input belongs to a certain class. Our model has many inputs, thus depending on the combination of inputs our model will predict the probability of an event being '0' (flight arriving on time) or '1' (flight arriving late).
+
+
+<br>
+
+Instantiate the Logistic Regression model
+
+```{python}
+
+
+
+lr = LogisticRegression(labelCol="label",
+                        featuresCol="features",
+                        family='binomial')
+
+
+```
+
+
+
+```{python}
+
+
+evaluator = BinaryClassificationEvaluator(labelCol='label',
+                                          rawPredictionCol="rawPrediction",
+                                          metricName='areaUnderROC')
+
+
+```
 
 
 
 
+K-fold cross validation performs model selection by splitting the dataset into a set of non-overlapping randomly partitioned folds which are used as separate training and test datasets. For example, we will be setting the number of folds at 3 ( numFolds=3. K-fold cross validation will generate 3 (training, test) dataset pairs, each of which uses two-thirds of the data for training and one-third for testing. Each fold is used as the test set exactly once. In other words, each fold will act as a training set once while the other folds are part of the testing population.
 
 
+
+
+```{python}
+
+lr_cv = CrossValidator(estimator=lr,
+                       estimatorParamMaps=lr_params,
+                       evaluator=evaluator,
+                       numFolds=3,
+                       collectSubModels=True,
+                       parallelism=8)
+
+
+
+```
+
+
+
+
+```{python}
+
+
+lr_cv_model = lr_cv.fit(flights_train)
+
+
+```
 
 
 
