@@ -1162,3 +1162,322 @@ print(f"Logistic Regression Average Cross Validation Score:{lr_avg_cv_metrics:.2
 
 
 
+The best model is an estimate of the cross-validation’s performance. It provides a reliable estimate of how well a given model configuration (logistic regression algorithm and hyperparameters) will perform on unseen data. This is done by averaging performance metrics across multiple validation folds. 
+
+```{python}
+
+lr_model = lr_cv_model.bestModel
+
+
+```
+
+
+
+```{python}
+
+
+
+
+print(lr_cv_model.bestModel)
+
+
+
+```
+
+
+
+```{python}
+
+
+lr_train_summary = lr_model.summary
+
+
+
+```
+
+
+
+```{python}
+
+
+# Print out the Area Under the ROC Curve (AUC)
+print('Training Set AUC: {:.3f}'.format(log_train_summary.areaUnderROC))
+
+
+```
+
+
+```{python}
+
+
+
+lr_train_preds = lr_model.transform(flights_train)
+
+
+```
+
+The transform method applies what was learned from fitting the training data and applies it to both the training and testing data. 
+
+
+
+```{python}
+
+
+lr_train_evaluator_accuracy = MulticlassClassificationEvaluator(
+    metricName="accuracy")
+
+
+```
+
+
+```{python}
+
+
+lr_train_accuracy = accuracy_eval.evaluate(lr_train_preds) * 100
+
+
+
+```
+
+
+```{python}
+
+
+
+print("Logistic Regression Train Accuracy: {0:.2f}".format(lr_train_accuracy),
+      "%")
+
+
+
+```
+
+
+
+The accuracy score of 92% is very good for our model though we will view other scoring metrics before making judgement on our model.
+
+The ROC curve plots the true positive rate versus the false positive rate as the threshold increases from zero (top right) to one (bottom left). The AUC score summarizes the ROC curve in a single number. AUC indicates how well a model performs across all values of the threshold. An ideal model that performs perfectly regardless of the threshold, would have AUC of 1. A score of one would be displayed on the ROC plot as the curve bends at the upper left corner of the plot.
+
+
+
+```{python}
+
+lr_train_precision_label_1=lr_train_summary.precisionByLabel[1]
+lr_train_recall_label_1=lr_train_summary.recallByLabel[1]
+lr_train_f1_label_1=lr_train_summary.fMeasureByLabel()[1]
+print("Logistic Regressiont Train Precision Label 1: {0:.2f}".format(lr_train_precision_label_1))
+print("Logistic Regression Train Recall Label 1: {0:.2f}".format(lr_train_recall_label_1))
+print("Logistic Regression Train F1 Score Label 1: {0:.2f}".format(lr_train_f1_label_1))
+
+
+```
+
+
+```{python}
+
+lr_train_precision_label_0=lr_train_summary.precisionByLabel[0]
+lr_train_recall_label_0=lr_train_summary.recallByLabel[0]
+lr_train_f1_label_0=lr_train_summary.fMeasureByLabel()[0]
+print("Logistic Regressiont Train Precision Label 0: {0:.2f}".format(lr_train_precision_label_0))
+print("Logistic Regression Train Recall Label 0: {0:.2f}".format(lr_train_recall_label_0))
+print("Logistic Regression Train F1 Score Label 0: {0:.2f}".format(lr_train_f1_label_0))
+
+
+
+```
+
+The ROC curve plots the true positive rate versus the false positive rate as the threshold increases from zero (top right) to one (bottom left). The AUC score summarizes the ROC curve in a single number. AUC indicates how well a model performs across all values of the threshold. An ideal model that performs perfectly regardless of the threshold, would have AUC of 1. A score of one would be displayed on the ROC plot as the curve bends at the upper left corner of the plot.
+
+
+
+```{python}
+
+
+
+print(" ")
+print("Precision by Label:")
+for i, prec in enumerate(log_train_summary.precisionByLabel):
+    print("label %d: %s" % (i, prec))
+
+
+```
+
+We are evaluating our precision score by label (0=flight arrived on time, 1=flight did not arrive on time). The precision score for label 0 is 0.95 (rounded up) which tells us that this model is excellent ensuring predictions of label '0' are in fact label '0'. Another way of looking at it is 95% of labels predicted as '0' are correct. Precision score for label '1' is not as high with a score of .80. If we had to rate the model on correctly predicting label '1' we would rate it as 'good'. Looking at it another way, 80 % of labels predicted as '1' are correct, though this also means 20% of labels predicted as '1' are incorrect.
+
+
+
+```{python}
+
+
+print(" ")
+print("Recall by Label:")
+for i, prec in enumerate(log_train_summary.recallByLabel):
+    print("label %d: %s" % (i, prec))
+
+
+
+```
+
+
+
+Now, we will evaluate the recall score by label. With a recall score of .96 for label '0', our model is excellent at finding this label. We can say that our model is able to find 96% of all possible labels that are '0'. The recall score for label '1' is .77, .19 lower than the score for label '0'. Our model is only able to find 77% of all possible labels that are '1'.
+For this analysis, our event of interest is flights that arrive late (label 1). That is, we are interested in the predictions of flights that are late as that is the problem we are concerned with solving.
+Like ROC curves, precision-recall curves provide a graphical representation of a classifier’s performance across many thresholds. The precision-recall curve shows the tradeoff between precision and recall for different thresholds. Also, just as the ROC curve has a quantitative measure so does the precision recall curve. This summary metric is the AUC-PR. AUC-PR stands for area under the (precision-recall) curve. The higher the AUC-PR score, the better a classifier performs for the given task. A high area under the curve represents both high recall and high precision, where high precision relates to a low false positive rate, and high recall relates to a low false negative rate. High scores for both show that the classifier is returning accurate results (high precision), as well as returning most of all positive results (high recall).
+
+
+
+
+
+For this analysis, our event of interest is flights that arrive late (label 1). That is, we are interested in the predictions of flights that are late as that is the problem we are concerned with solving.
+
+
+
+
+Like ROC curves, precision-recall curves provide a graphical representation of a classifier’s performance across many thresholds. The precision-recall curve shows the tradeoff between precision and recall for different thresholds. Also, just as the ROC curve has a quantitative measure so does the precision recall curve. This summary metric is the AUC-PR. AUC-PR stands for area under the (precision-recall) curve. The higher the AUC-PR score, the better a classifier performs for the given task. A high area under the curve represents both high recall and high precision, where high precision relates to a low false positive rate, and high recall relates to a low false negative rate. High scores for both show that the classifier is returning accurate results (high precision), as well as returning most of all positive results (high recall).
+
+
+
+
+```{python}
+
+
+
+lr_auprc_train = evaluator.evaluate(lr_train_preds,
+                           {evaluator.metricName: "areaUnderPR"})
+print("Logistic Regression Area Under Precision-Recall Curve Score-Training: {:.4f}".format(lr_auprc_train))
+
+
+
+```
+
+
+```{python}
+
+
+pr = lr_train_summary.pr.toPandas()
+plt.plot(pr['recall'], pr['precision'])
+plt.ylabel('Precision')
+plt.xlabel('Recall')
+plt.title('Precision-Recall  Curve')
+
+plt.show()
+
+%matplotlib inline
+
+
+
+```
+
+
+
+```{python}
+
+
+plt.clf()
+
+
+```
+
+
+Viewing the Precision Recall curve for the logistic regression model, we find the curve starts its bend at .95 precision and .62 recall. The area under the precision recall curve is .85, which gives our model an overall good score. Both the score and the precision recall curve reflect the differences between label '0' and label '1'.
+
+
+
+```{python}
+
+
+# Print out the Area Under the ROC Curve (AUC)
+lr_train_auc=lr_train_summary.areaUnderROC
+print('Logistic Regression Training Set AUC: {:.3f}'.format(lr_train_auc))
+
+
+
+```
+
+
+
+```{python}
+
+
+trainingSummary = lr_model.summary
+roc = trainingSummary.roc.toPandas()
+plt.plot(roc['FPR'], roc['TPR'])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('ROC Curve')
+plt.show()
+%matplotlib inline
+
+
+
+```
+
+```{python}
+
+plt.clf()
+
+
+
+```
+
+
+
+
+
+The ROC curve for the logistic regression model bends at just below the 0.8 true positive rate. The AUC score for our model is 0.926 which translates into a particularly good model. Yet this does not seem to match our ROC curve, as such a high score would bend much further to the upper left-hand corner of the plot. One reason for this is though the true positive rate is just below .80, the false positive rate is low at .05. Thus, our model sacrifices on predicting true positives by keeping false positives predictions low.
+
+
+
+
+```{python}
+
+
+train_predictions_and_labels = lr_train_preds.select(
+    "prediction", "label").rdd.map(
+        lambda row: (float(row["prediction"]), float(row["label"])))
+
+train_metrics = MulticlassMetrics(train_predictions_and_labels)
+
+# Confusion Matrix for Train Set
+train_confusion_matrix = train_metrics.confusionMatrix().toArray()
+
+
+
+```
+
+A confusion matrix gives a breakdown of the model predictions versus the known labels. The confusion matrix consists of four counts which are labelled as follows: - "positive" indicates a prediction of 1, while - "negative" indicates a prediction of 0 and - "true" corresponds to a correct prediction, while - "false" designates an incorrect prediction.
+
+
+
+```{python}
+
+plt.figure(figsize=(10, 5))
+#plt.subplot(1, 2, 1)
+sns.heatmap(train_confusion_matrix,
+            annot=True,
+            fmt=".0f",
+            cmap="Blues",
+            xticklabels=["Predicted 0", "Predicted 1"],
+            yticklabels=["Actual 0", "Actual 1"])
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix (Train Set)")
+
+plt.show()
+%matplotlib inline
+
+
+
+```
+
+
+```{python}
+
+plt.clf()
+
+```
+
+
+We can use the matrix for general calculations on our model. For label '0', of all labels predicted as '0', 95% were correct. On all labels predicted as label's', 80% were correct.
+
+### Test Set
+
