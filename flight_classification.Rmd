@@ -1126,3 +1126,39 @@ lr_cv_model = lr_cv.fit(flights_train)
 
 
 
+The fit method that we will use for our classification models is like how it was used in our pre-processing step for our String Indexer Model. For machine learning, the fit method teaches the model how to understand and interpret the data. We only use the fit method on the training data.
+
+
+
+We will evaluate the cross validation by using the average metric, which is the average area under the ROC curve for each parameter combination.
+
+
+```{python}
+
+lr_avg_cv_metrics
+
+
+
+```
+
+
+```{python}
+
+
+lr_avg_cv_metrics=lr_cv_model.avgMetrics[0]
+
+
+```
+
+
+```{python}
+
+print(f"Logistic Regression Average Cross Validation Score:{lr_avg_cv_metrics:.2f}")
+
+
+
+```
+
+
+
+
