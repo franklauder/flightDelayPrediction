@@ -1651,7 +1651,14 @@ print("Logistic Regression Area under PR Curve-Test: {:.4f}".format(auprc_test))
 ```
 
 
+### Feature Importance
 
+
+Important features, as the name suggests, are those features that are important in a model's predictions. We will perform analysis on which features hold the greatest weight for a model.
+
+
+
+Before we calculate feature importance, we will calculate coefficients. For logistic regression. Coefficients help us determine how much a target feature moves based on a unit move of a predictor feature.
 
 
 ```{python}
@@ -1659,7 +1666,7 @@ print("Logistic Regression Area under PR Curve-Test: {:.4f}".format(auprc_test))
 
 
 
-
+coeff_array = lr_model.coefficients.toArray()
 
 
 ```
@@ -1670,7 +1677,7 @@ print("Logistic Regression Area under PR Curve-Test: {:.4f}".format(auprc_test))
 
 
 
-
+coef_values=lr_model.coefficients.values
 
 
 
@@ -1681,6 +1688,130 @@ print("Logistic Regression Area under PR Curve-Test: {:.4f}".format(auprc_test))
 ```{python}
 
 
+coef_values
+
+
+
+
+```
+
+
+The above output displays the coefficients in an array with no features names.   We will write a function that will extract the coefficients along with the associated feature names. 
+
+
+```{python}
+
+
+
+
+def extract_feature_coef(coef, dataset, features_col):
+    list_extract = []
+    for i in dataset.schema[features_col].metadata["ml_attr"]["attrs"]:
+        list_extract = list_extract + dataset.schema[features_col].metadata["ml_attr"]["attrs"][i]
+    coefficients = pd.DataFrame(list_extract)
+    coefficients['coef'] = coefficients['idx'].apply(lambda x: coef[x])
+    return(coefficients.sort_values('coef', ascending = False))
+
+
+```
+
+
+
+```{python}
+
+
+coef_features=extract_feature_coef(coeff_array,final_data,'features')
+
+
+
+```
+
+
+
+Features with a zero coefficient do not have an impact on our model so we will filter the coefficients to omit zero values. 
+
+
+```{python}
+
+
+coef_features=coef_features[coef_features['coef']!=0]
+
+
+
+
+```
+
+```{python}
+
+
+
+
+print(coef_features.sort_values(["coef"]))
+
+
+```
+
+
+Logistic regression does not have a specific feature importance function as the other classification algorithms we will be using. As such, for us to determine features importance, the coefficients will be transformed to absolute values, meaning that negative values will  convert to positive values. Note that this is only done for feature importance and is not intended for traditional logistic regression analysis. 
+
+
+
+```{python}
+
+
+coef_features['abs_coef'] = coef_features["coef"].abs()
+
+
+```
+
+
+```{python}
+
+
+features_df = coef_features
+
+
+```
+
+
+
+
+```{python}
+
+features_df["Logistic Regression"] = features_df["abs_coef"]
+
+
+
+```
+
+
+
+```{python}
+
+
+features_df.head(9)
+
+
+```
+
+Evaluating the logistic regression features we find that distance groups are most important in the prediction of the target features. All other features have small effects on our model.
+
+
+
+```{python}
+
+
+features_df.info()
+
+
+```
+
+
+## Random Forest
+
+
+
+```{python}
 
 
 
@@ -1689,6 +1820,12 @@ print("Logistic Regression Area under PR Curve-Test: {:.4f}".format(auprc_test))
 ```
 
 
+```{python}
+
+
+
+
+```
 
 
 
