@@ -1481,3 +1481,34 @@ We can use the matrix for general calculations on our model. For label '0', of a
 
 ### Test Set
 
+
+We will now fit the logistic regresion model to our test data.
+
+```{python}
+
+
+lr_test_pred = lr_model.transform(flights_test)
+
+
+```
+
+
+
+
+```{python}
+
+
+
+lr_test_pred.select("label", "prediction", "probability", "features").show(10)
+
+
+
+```
+
+
+
+For our review of the test set metrics, we will compare them with the training set metrics. How well our logistic regression model will determine if there are significant differences between training and testing metrics. If the test set metrics are significantly lower than those from the training set, then we can conclude that the model is overfit.
+
+
+
+
