@@ -2177,6 +2177,228 @@ plt.clf()
 ```
 
 
+### Test Set
+
+
+
+
+```{python}
+
+
+rf_test_pred = rf_model.transform(flights_test)
+
+
+```
+
+
+```{python}
+
+
+rf_pred_summary = rf_test_pred.summary
+
+
+```
+
+
+```{python}
+
+
+rf_test_pred.select("label", "prediction", "probability", "features").show(10)
+
+
+```
+
+### Test Metrics
+
+
+```{python}
+
+
+rf_test_accuracy = accuracy_eval.evaluate(rf_test_pred) * 100
+
+
+```
+
+
+```{python}
+
+
+rf_test_auroc = evaluator.evaluate(rf_test_pred,
+                                   {evaluator.metricName: "areaUnderROC"})
+
+
+```
+
+
+```{python}
+
+rf_test_aupr = evaluator.evaluate(rf_test_pred,
+                                   {evaluator.metricName: "areaUnderPR"})
+
+
+
+```
+
+
+```{python}
+
+
+print("Random Forest Test Accuracy: {0:.2f}".format(rf_test_accuracy), "%")
+
+
+```
+
+
+```{python}
+
+
+rf_test_metrics = rf_model.evaluate(
+    rf_test_pred.select("label", "features"))
+
+
+
+```
+
+
+```{python}
+
+
+rf_test_precision_label_1=rf_test_metrics.precisionByLabel[1]
+rf_test_precision_label_0=rf_test_metrics.precisionByLabel[0]
+
+
+```
+
+
+```{python}
+
+
+print( f"Random Forest Test Precision label 1: {rf_test_precision_label_1:.2f}")
+print(f"Random Forest Test precision label 0: {rf_test_precision_label_0:.2f}")
+
+
+```
+
+
+```{python}
+
+
+rf_test_recall_label_1=rf_test_metrics.recallByLabel[1]
+rf_test_recall_label_0=rf_test_metrics.recallByLabel[0]
+
+
+```
+
+
+
+```{python}
+
+
+print(f"Random Forest Test Recall label 1: {rf_test_recall_label_1:.2f}")
+print(f"Random Forest Test Recall label 0: {rf_test_recall_label_0:.2f}")
+
+
+
+```
+
+
+```{python}
+
+
+rf_test_f1_label_1=lr_test_pred_metrics.fMeasureByLabel()[1]
+rf_test_f1_label_0=lr_test_pred_metrics.fMeasureByLabel()[0]
+
+
+```
+
+
+```{python}
+
+
+print( f"Random Forest Test F1 label 1: {rf_test_f1_label_1:.2f}")
+print(f"Random Forest Test F1 label 0: {rf_test_f1_label_0:.2f}")
+
+
+```
+
+
+```{python}
+
+
+print("Random Forest Test Area under ROC Curve: {:.3f}".format(rf_test_auroc)) 
+print("Random Forest Test Area under PR Curve: {:.3f}".format(rf_test_aupr))
+
+
+```
+
+
+```{python}
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+
+
+
+
+```
+
+
+
+```{python}
+
+
+
+
+
+```
+
+
+
+```{python}
+
+
+
+
+
+```
+
+
+
+```{python}
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+
+
+```
+
+
+
+```{python}
+
+
+
+
+
+```
 
 
 
