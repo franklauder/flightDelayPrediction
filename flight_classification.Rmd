@@ -1809,12 +1809,14 @@ features_df.info()
 
 ## Random Forest
 
+Random forest is an example of ensemble learning. Ensemble learning takes predictions from multiple models are merges them to enhance the accuracy of prediction. Random Forest models are made up of individual decision trees whose predictions are combined for a final result. The final result is decided using majority rules which means that the final prediction is what the majority of the decision tree models chose. A decision tree is a flowchart-like model that breaks down complex decisions into a series of simple questions or rules that follow a logical order. The answers to these questions or rules are either yes or no and based on the answer break off to another branch where another question awaits. Questions are asked to further split the data into uniform groups. This question-and-answer process continues until a decisive point is reached, which provides the final decision or prediction.
+
 
 
 ```{python}
 
 
-
+rf = RandomForestClassifier(labelCol="label", featuresCol="features")
 
 
 ```
@@ -1824,8 +1826,26 @@ features_df.info()
 
 
 
+evaluator = BinaryClassificationEvaluator(rawPredictionCol='prediction',
+                                          labelCol="label")
 
 ```
 
 
+
+```{python}
+
+
+
+
+rf_params = ParamGridBuilder() \
+            .addGrid(rf.maxDepth, [2, 5, 10]) \
+            .addGrid(rf.numTrees, [10, 20, 30]) \
+            .addGrid(rf.maxBins, [5, 10 , 20]) \
+            .addGrid(rf.minInfoGain, [0, 0.01 , 0.1]) \
+            .build()
+
+
+
+```
 
