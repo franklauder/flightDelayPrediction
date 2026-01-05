@@ -1809,7 +1809,7 @@ features_df.info()
 
 ## Random Forest
 
-Random forest is an example of ensemble learning. Ensemble learning takes predictions from multiple models are merges them to enhance the accuracy of prediction. Random Forest models are made up of individual decision trees whose predictions are combined for a final result. The final result is decided using majority rules which means that the final prediction is what the majority of the decision tree models chose. A decision tree is a flowchart-like model that breaks down complex decisions into a series of simple questions or rules that follow a logical order. The answers to these questions or rules are either yes or no and based on the answer break off to another branch where another question awaits. Questions are asked to further split the data into uniform groups. This question-and-answer process continues until a decisive point is reached, which provides the final decision or prediction.
+Random forest is an example of ensemble learning. Ensemble learning takes predictions from multiple models and merges them to enhance the accuracy of prediction. Random Forest models are made up of individual decision trees whose predictions are combined for a final result. The final result is decided using majority rules which means that the final prediction is what the majority of the decision tree models chose. A decision tree is a flowchart-like model that breaks down complex decisions into a series of simple questions or rules that follow a logical order. The answers to these questions or rules are either yes or no and based on the answer break off to another branch where another question awaits. Questions are asked to further split the data into uniform groups. This question-and-answer process continues until a decisive point is reached, which provides the final decision or prediction.
 
 
 
@@ -2401,11 +2401,17 @@ plt.clf()
 
 ```
 
+## Gradient Boost
+
+Gradient Boost is another example of ensemble learning though instead of using majority rules like Random Forest, it uses incorrect predictions from previous trees to adjust the next tree. This is accomplished by fitting each new tree based on the errors of the previous tree’s predictions. Mistakes from the previous trees are used to build a new tree solely around these mistakes.
+
+
+
 
 ```{python}
 
 
-
+gb = GBTClassifier()
 
 
 ```
@@ -2415,7 +2421,11 @@ plt.clf()
 ```{python}
 
 
-
+gb_paramGrid = (ParamGridBuilder() \
+            .addGrid(gb.maxDepth, [2, 5, 10]) \
+             .addGrid(gb.maxBins, [10, 20, 40]) \
+             .addGrid(gb.maxIter, [10, 15])
+             .build())
 
 
 ```
