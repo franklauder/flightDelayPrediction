@@ -2774,7 +2774,270 @@ plt.clf()
 ```{python}
 
 
+gb_test_pred = gb_model.transform(flights_test)
 
+
+
+```
+
+
+```{python}
+
+
+gb_test_pred.select("label", "prediction", "probability", "features").show(10)
+
+
+```
+
+### Test Metrics
+
+
+```{python}
+
+
+gb_test_accuracy = accuracy_eval.evaluate(gb_test_pred) * 100
+
+
+```
+
+
+```{python}
+
+
+precision_eval.setMetricLabel(1)
+recall_eval.setMetricLabel(1)
+f1_eval.setMetricLabel(1)
+
+
+
+```
+
+
+```{python}
+
+
+precision_eval.setMetricLabel(1)
+
+
+
+```
+
+
+```{python}
+
+
+gb_precision_test_label_1=precision_eval.evaluate(gb_test_pred)
+
+
+
+
+```
+
+
+
+
+```{python}
+
+recall_eval.setMetricLabel(1)
+
+
+```
+
+```{python}
+
+
+gb_recall_test_label_1=recall_eval.evaluate(gb_test_pred)
+
+
+```
+
+```{python}
+
+f1_eval.setMetricLabel(1)
+
+
+
+```
+
+```{python}
+
+
+gb_f1_test_label_1=f1_eval.evaluate(gb_test_pred)
+
+
+```
+
+
+```{python}
+
+
+precision_eval.setMetricLabel(0)
+
+
+```
+
+
+```{python}
+
+gb_precision_test_label_0=precision_eval.evaluate(gb_test_pred)
+
+
+```
+
+
+```{python}
+
+
+recall_eval.setMetricLabel(0)
+
+
+```
+
+
+```{python}
+
+gb_recall_test_label_0=recall_eval.evaluate(gb_test_pred)
+
+
+
+```
+
+
+```{python}
+
+f1_eval.setMetricLabel(0)
+
+
+
+```
+
+
+```{python}
+
+
+
+gb_f1_test_label_0=f1_eval.evaluate(gb_test_pred)
+
+```
+
+
+```{python}
+
+
+print("Gradient Boost Test  Accuracy: {0:.2f}".format(gb_test_accuracy), "%")
+
+
+```
+
+
+```{python}
+
+
+print( f"Gradient Boost Test Precision label 1: {gb_precision_test_label_1:.2f}")
+print(f"Gradient Boost Test Precision label 0: {gb_precision_test_label_0:.2f}")
+
+
+```
+
+
+```{python}
+
+print(f"Gradient Boost Test Recall label 1: {gb_recall_test_label_1:.2f}")
+print(f"Gradient Boost Test Recall label 0: {gb_recall_test_label_0:.2f}")
+
+
+
+```
+
+
+```{python}
+
+
+print(f"Gradient Boost Test F1 label 1: {gb_f1_test_label_1:.2f}")
+print(f"Gradient Boost Test F1 label 0: {gb_f1_test_label_0:.2f}")
+
+
+```
+
+
+
+
+```{python}
+
+
+gb_test_auroc = evaluator.evaluate(gb_test_pred,
+                                   {evaluator.metricName: "areaUnderROC"})
+
+
+
+```
+
+
+```{python}
+
+
+
+gb_test_aupr = evaluator.evaluate(gb_test_pred,
+                                   {evaluator.metricName: "areaUnderPR"})
+
+
+```
+
+
+
+
+```{python}
+
+print("Gradient Boost Test Area under ROC Curve: {:.3f}".format(gb_test_auroc))
+print("Gradient Boost Test Area under PR Curve: {:.3f}".format(gb_test_aupr))
+
+
+
+```
+
+### Feature Importance
+
+
+```{python}
+
+
+gb_featureImportances = gb_model.featureImportances.toArray()
+
+
+```
+
+
+```{python}
+
+
+feature_list = extract_feature_imp(gb_featureImportances, final_data,
+                                   "features")
+top_20_features = feature_list.sort_values('score', ascending=False).head(20)
+
+
+```
+
+
+```{python}
+
+
+plt.figure(figsize=(10,7))
+
+sns.barplot(x='score', y='name', data=top_20_features)
+plt.title("Gradient Boost Important Features")
+plt.tick_params(axis='y', which='major', labelsize=7)
+plt.ylabel(None)
+
+plt.show()
+%matplotlib inline
+
+
+```
+
+
+```{python}
+
+plt.clf()
 
 
 
@@ -2790,33 +3053,10 @@ plt.clf()
 ```
 
 
-```{python}
 
 
 
 
-
-```
-
-
-```{python}
-
-
-
-
-
-
-```
-
-
-```{python}
-
-
-
-
-
-
-```
 
 
 
