@@ -1849,3 +1849,30 @@ rf_params = ParamGridBuilder() \
 
 ```
 
+Create a cross-validator
+
+
+```{python}
+
+
+rf_cv = CrossValidator(estimator=rf,
+                       estimatorParamMaps=rf_params,
+                       evaluator=evaluator,
+                       numFolds=3,
+                       parallelism=8)
+
+
+
+
+```
+
+
+```{python}
+
+
+rf_cv_model = rf_cv.fit(flights_train)
+
+
+
+```
+
