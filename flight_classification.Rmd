@@ -1876,3 +1876,309 @@ rf_cv_model = rf_cv.fit(flights_train)
 
 ```
 
+### Training Metrtics
+
+```{python}
+
+rf_cv_avg_metrics=rf_cv_model.avgMetrics[0]
+
+```
+
+
+```{python}
+
+
+print(f"Average Random Forest Cross Validation Score: {rf_cv_avg_metrics:.2f}")
+
+
+```
+
+```{python}
+
+
+rf_model = rf_cv_model.bestModel
+
+```
+
+```{python}
+
+print(rf_cv_model.bestModel)
+
+
+```
+
+```{python}
+
+rf_train_summary = rf_model.summary
+
+```
+
+
+```{python}
+
+rf_train_preds = rf_model.transform(flights_train)
+
+```
+
+```{python}
+
+
+rf_train_accuracy = (
+    accuracy_eval.evaluate(rf_train_preds)) * 100
+
+
+```
+
+
+
+
+```{python}
+
+
+accuracy_eval = BinaryClassificationEvaluator(metricName="accuracy")
+
+
+```
+
+
+```{python}
+
+print("Random Forest Train Accuracy: {0:.2f}".format(rf_train_accuracy))
+
+
+```
+
+```{python}
+
+
+
+rf_train_auroc = evaluator.evaluate(rf_train_preds,
+                                    {evaluator.metricName: "areaUnderROC"})
+
+
+```
+
+```{python}
+
+
+print("Random Forest Train Area under ROC Curve: {:.4f}".format(rf_train_auroc))
+
+
+```
+
+```{python}
+
+
+trainingSummary = rf_model.summary
+roc = trainingSummary.roc.toPandas()
+plt.plot(roc['FPR'], roc['TPR'])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('Random Forest Training ROC Curve')
+plt.show()
+%matplotlib inline
+
+
+
+```
+
+```{python}
+
+
+
+plt.clf()
+
+
+
+```
+
+
+```{python}
+
+
+print(" ")
+print("Precision by Label:")
+for i, prec in enumerate(rf_train_summary.precisionByLabel):
+    print("label %d: %s" % (i, prec))
+
+
+
+```
+
+
+```{python}
+
+print(" ")
+print("Recall by Label:")
+for i, prec in enumerate(rf_train_summary.recallByLabel):
+    print("label %d: %s" % (
+        i,
+        prec,
+    ))
+
+
+
+```
+
+
+```{python}
+
+rf_train_precision_label_1=rf_train_summary.precisionByLabel[1]
+rf_train_recall_label_1=rf_train_summary.recallByLabel[1]
+rf_train_f1_label_1=rf_train_summary.fMeasureByLabel()[1]
+print("Random Forest Train Precision Label 1: {0:.2f}".format(rf_train_precision_label_1))
+print("Random Forest Train Recall Label 1: {0:.2f}".format(rf_train_recall_label_1))
+print("Random Forest Train F1 Score Label 1: {0:.2f}".format(rf_train_f1_label_1))
+
+
+```
+
+```{python}
+
+rf_train_precision_label_0=rf_train_summary.precisionByLabel[0]
+rf_train_recall_label_0=rf_train_summary.recallByLabel[0]
+rf_train_f1_label_0=rf_train_summary.fMeasureByLabel()[0]
+print("Random Forest Train Precision Label 0: {0:.2f}".format(rf_train_precision_label_0))
+print("Random Forest Train Recall Label 0: {0:.2f}".format(rf_train_recall_label_0))
+print("Random Forest Train F1 Score Label 0: {0:.2f}".format(rf_train_f1_label_0))
+
+
+
+```
+
+
+```{python}
+
+
+rf_auprc_train = evaluator.evaluate(rf_train_preds,
+                           {evaluator.metricName: "areaUnderPR"})
+print("Random Forest Area Under Precision-Recall Curve Score-Training: {:.4f}".format(rf_auprc_train))
+
+
+```
+
+
+```{python}
+
+
+pr = rf_train_summary.pr.toPandas()
+plt.plot(pr['recall'], pr['precision'])
+plt.ylabel('Precision')
+plt.xlabel('Recall')
+plt.title('Random Forest Training Precsion-Recall Curve')
+plt.show()
+
+%matplotlib inline
+
+
+```
+
+
+```{python}
+
+
+
+plt.clf()
+
+
+```
+
+```{python}
+
+
+rf_train_auroc = evaluator.evaluate(rf_train_preds,
+                                    {evaluator.metricName: "areaUnderROC"})
+
+
+```
+
+
+```{python}
+
+
+rint("Random Forest Train Area under ROC Curve: {:.4f}".format(rf_train_auroc))
+
+
+```
+
+
+```{python}
+
+trainingSummary = rf_model.summary
+roc = trainingSummary.roc.toPandas()
+plt.plot(roc['FPR'], roc['TPR'])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.title('Random Forest Training ROC Curve')
+plt.show()
+%matplotlib inline
+
+
+
+```
+
+
+```{python}
+
+
+
+plt.clf()
+
+
+```
+
+
+```{python}
+
+
+train_predictions_and_labels = rf_train_preds.select(
+    "prediction", "label").rdd.map(
+        lambda row: (float(row["prediction"]), float(row["label"])))
+
+train_metrics = MulticlassMetrics(train_predictions_and_labels)
+
+# Confusion Matrix for Train Set
+train_confusion_matrix = train_metrics.confusionMatrix().toArray()
+
+
+```
+
+
+```{python}
+
+
+
+plt.figure(figsize=(10, 5))
+#plt.subplot(1, 2, 1)
+sns.heatmap(train_confusion_matrix,
+            annot=True,
+            fmt=".0f",
+            cmap="Blues",
+            xticklabels=["Predicted 0", "Predicted 1"],
+            yticklabels=["Actual 0", "Actual 1"])
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix Random Forest (Train Set)")
+
+plt.show()
+
+%matplotlib inline
+
+
+
+```
+
+
+```{python}
+
+plt.clf()
+
+
+```
+
+
+
+
+
+
+
