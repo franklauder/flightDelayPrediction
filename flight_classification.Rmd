@@ -2331,11 +2331,20 @@ print("Random Forest Test Area under PR Curve: {:.3f}".format(rf_test_aupr))
 
 ```
 
+### Feature Importance
+
 
 ```{python}
 
 
-
+def extract_feature_imp(feature_imp, dataset, features_col):
+    list_extract = []
+    for i in dataset.schema[features_col].metadata["ml_attr"]["attrs"]:
+        list_extract = list_extract + dataset.schema[features_col].metadata[
+            "ml_attr"]["attrs"][i]
+    feature_list = pd.DataFrame(list_extract)
+    feature_list['score'] = feature_list['idx'].apply(lambda x: feature_imp[x])
+    return (feature_list.sort_values('score', ascending=False))
 
 
 ```
@@ -2345,27 +2354,7 @@ print("Random Forest Test Area under PR Curve: {:.3f}".format(rf_test_aupr))
 
 
 
-
-
-
-
-```
-
-
-
-```{python}
-
-
-
-
-
-```
-
-
-
-```{python}
-
-
+rf_featureImportances = rf_model.featureImportances.toArray()
 
 
 
@@ -2376,6 +2365,37 @@ print("Random Forest Test Area under PR Curve: {:.3f}".format(rf_test_aupr))
 ```{python}
 
 
+feature_list = extract_feature_imp(rf_featureImportances, final_data,
+                                   "features")
+top_20_features = feature_list.sort_values('score', ascending=False).head(20)
+
+
+```
+
+
+
+```{python}
+
+
+
+plt.figure(figsize=(10,7))
+
+sns.barplot(x='score', y='name', data=top_20_features)
+plt.title("Random Forest Important Features")
+plt.tick_params(axis='y', which='major', labelsize=7)
+plt.ylabel(None)
+
+plt.show()
+%matplotlib inline
+
+```
+
+
+
+```{python}
+
+
+plt.clf()
 
 
 
