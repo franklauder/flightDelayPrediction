@@ -2437,6 +2437,358 @@ gb_cv_model = gb_cv.fit(flights_train)
 
 ```
 
+### Training
+
+
+```{python}
+
+gb_model = gb_cv_model.bestModel
+
+
+
+```
+
+### Training Metrics
+
+
+```{python}
+
+
+
+precision_eval = MulticlassClassificationEvaluator(labelCol="label", metricName="precisionByLabel")
+recall_eval = MulticlassClassificationEvaluator(labelCol="label", metricName="recallByLabel")
+f1_eval = MulticlassClassificationEvaluator(labelCol="label", metricName="f1")
+
+
+```
+
+```{python}
+
+
+gb_cv_avg_mwetrics=gb_cv_model.avgMetrics[0]
+
+
+
+```
+
+
+
+
+```{python}
+
+print(f"Average Gradient Boost Cross Validation Score: {gb_cv_avg_mwetrics:.2f}")
+
+
+
+
+```
+
+
+
+```{python}
+
+
+print(gb_cv_model.bestModel)
+
+
+
+
+```
+
+
+
+```{python}
+
+
+gb_train_preds = gb_model.transform(flights_train)
+
+
+
+```
+
+
+
+```{python}
+
+
+gb_train_accuracy = (
+    accuracy_eval.evaluate(gb_train_preds)) * 100
+
+
+
+```
+
+
+
+```{python}
+
+
+precision_eval.setMetricLabel(1)
+
+
+
+```
+
+
+
+```{python}
+
+
+gb_precision_train_label_1=precision_eval.evaluate(gb_train_preds)
+
+
+
+```
+
+
+
+```{python}
+
+
+recall_eval.setMetricLabel(1)
+
+
+
+
+```
+
+
+```{python}
+
+
+
+gb_recall_train_label_1=recall_eval.evaluate(gb_train_preds)
+
+
+```
+
+
+
+```{python}
+
+f1_eval.setMetricLabel(1)
+
+
+```
+
+```{python}
+
+gb_f1_train_label_1=f1_eval.evaluate(gb_train_preds)
+
+
+
+```
+
+```{python}
+
+precision_eval.setMetricLabel(0)
+recall_eval.setMetricLabel(0)
+f1_eval.setMetricLabel(0)
+
+
+
+```
+
+
+
+```{python}
+
+
+precision_eval.setMetricLabel(0)
+
+
+```
+
+
+```{python}
+
+
+gb_precision_train_label_0=precision_eval.evaluate(gb_train_preds)
+
+
+```
+
+
+```{python}
+
+recall_eval.setMetricLabel(0)
+
+
+```
+
+
+```{python}
+
+gb_recall_train_label_0=recall_eval.evaluate(gb_train_preds)
+
+
+
+```
+
+
+```{python}
+
+f1_eval.setMetricLabel(0)
+
+
+
+```
+
+
+
+```{python}
+
+
+gb_f1_train_label_0=f1_eval.evaluate(gb_train_preds)
+
+
+```
+
+
+```{python}
+
+
+print("Gradient Boost Train Accuracy Score: {0:.2f}".format(gb_train_accuracy))
+
+
+```
+
+
+
+```{python}
+
+print("Gradient Boost Train Precision Label 1: {0:.2f}".format(gb_precision_train_label_1))
+print("Gradient Boost Train Recall Label 1: {0:.2f}".format(gb_recall_train_label_1))
+print("Gradient Boost Train F1 Score Label 1: {0:.2f}".format(gb_f1_train_label_1))
+
+
+
+
+```
+
+
+```{python}
+
+print("Gradient Boost Train Precision Label 0: {0:.2f}".format(gb_precision_train_label_0))
+print("Gradient Boost Train Recall Label 0: {0:.2f}".format(gb_recall_train_label_0))
+print("Gradient Boost Train F1 Score Label 0: {0:.2f}".format(gb_f1_train_label_0))
+
+
+
+```
+
+
+```{python}
+
+
+gb_auprc_train = evaluator.evaluate(gb_train_preds,
+                           {evaluator.metricName: "areaUnderPR"})
+print("Gradient Boost Area Under Precision-Recall Curve Score-Training: {:.3f}".format(gb_auprc_train))
+
+
+```
+
+
+
+```{python}
+
+gb_prob_df=gb_train_preds.select("label", "probability")
+
+
+
+```
+
+
+```{python}
+
+
+gb_train_auroc = evaluator.evaluate(gb_train_preds,
+                           {evaluator.metricName: "areaUnderROC"})
+
+
+
+```
+
+
+```{python}
+
+print("Gradient Boost Area Under Roc Curve Score-Training: {:.3f}".format(gb_train_auroc))
+
+
+
+
+```
+
+
+```{python}
+
+
+train_predictions_and_labels = gb_train_preds.select(
+    "prediction", "label").rdd.map(
+        lambda row: (float(row["prediction"]), float(row["label"])))
+
+train_metrics = MulticlassMetrics(train_predictions_and_labels)
+
+# Confusion Matrix for Train Set
+train_confusion_matrix = train_metrics.confusionMatrix().toArray()
+
+
+```
+
+
+```{python}
+
+
+plt.figure(figsize=(10, 5))
+#plt.subplot(1, 2, 1)
+sns.heatmap(train_confusion_matrix,
+            annot=True,
+            fmt=".0f",
+            cmap="Blues",
+            xticklabels=["Predicted 0", "Predicted 1"],
+            yticklabels=["Actual 0", "Actual 1"])
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix Gradient Boost (Train Set)")
+
+plt.show()
+
+%matplotlib inline
+
+
+```
+
+
+```{python}
+
+
+plt.clf()
+
+
+
+```
+
+### Testr Set
+
+
+```{python}
+
+
+
+
+
+
+```
+
+
+```{python}
+
+
+
+
+
+```
+
 
 ```{python}
 
@@ -2457,7 +2809,6 @@ gb_cv_model = gb_cv.fit(flights_train)
 ```
 
 
-
 ```{python}
 
 
@@ -2466,89 +2817,6 @@ gb_cv_model = gb_cv.fit(flights_train)
 
 
 ```
-
-
-
-```{python}
-
-
-
-
-
-
-
-```
-
-
-
-```{python}
-
-
-
-
-
-
-
-```
-
-
-
-```{python}
-
-
-
-
-
-
-```
-
-
-
-```{python}
-
-
-
-
-
-
-```
-
-
-
-```{python}
-
-
-
-
-
-
-```
-
-
-
-```{python}
-
-
-
-
-
-
-
-```
-
-
-```{python}
-
-
-
-
-
-
-```
-
-
-
-
 
 
 
